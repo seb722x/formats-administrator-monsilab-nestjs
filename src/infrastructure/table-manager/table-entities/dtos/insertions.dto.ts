@@ -2,7 +2,7 @@ import { IsArray, IsObject, IsString, ValidateNested } from 'class-validator';
 
 export class InsertionDto {
   @IsString()
-  table_name: string;
+  tableName: string;
 
   @IsArray()
   @ValidateNested()

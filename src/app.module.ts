@@ -1,10 +1,9 @@
-import { join } from 'path';
 
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './infrastructure/auth/auth.module';
-import { FormEntitiesModule } from './infrastructure/table-manager/forms.module';
+import { FormEntitiesModule } from './infrastructure/table-manager/table-manager.module';
 
 
 

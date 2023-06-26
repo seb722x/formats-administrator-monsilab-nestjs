@@ -1,77 +1,48 @@
 import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {  Repository,  Table,  TableColumn, TableForeignKey, TableUnique, getConnection, getRepository  } from 'typeorm';
+import {  Connection, Repository,  Table,  TableColumn, TableForeignKey, TableUnique, getConnection, getRepository  } from 'typeorm';
 
 
 import { CustomTable } from './entities/custom-table.entity';
 import { TableEntity } from './entities/table.entity';
 import { TemplateService } from '../table-templates/template.service';
+import { table } from './providers/table.provider';
+import { createCustomTableEntity } from './entities/table.test.entity';
+import { InsertionDto } from './dtos/insertions.dto';
 
 
 @Injectable()
 export class TableService {
 
+  private CustomTableEntity: any;
   constructor(
     private readonly templateService:TemplateService,
     @InjectRepository(CustomTable)
     private readonly entityRepository: Repository<CustomTable>,
+    private readonly connection: Connection,
     
   ) {}
 
+  async createEntityORM(name:string){
+    const template = this.templateService.findTemplateByName(name);
+    this.CustomTableEntity = createCustomTableEntity(template);
+
+    //const entityMetadata = this.connection.getMetadata(this.CustomTableEntity);
+    const entityRepository = this.connection.getRepository(this.CustomTableEntity);
+
+    //console.log(entityMetadata);
+    console.log(entityRepository);
+  }
+  
   async createTableFromTemplate(data: Record<string, any>): Promise<void> {
     const template = await this.templateService.findTemplateByName(data.templateName);
     const tableName = data.tableName;
     const queryRunner = this.entityRepository.manager.connection.createQueryRunner();
-  
-    const table = new Table({
-      name: tableName,
-      columns: template.columns.map((columns) => ({
-        name: columns.name,
-        type: columns.type,
-        isNullable:  true,
-        isUnique: true
 
-      })),
-    });
+    const table1 = table(tableName,template)
+    return await queryRunner.createTable(table1);
   
-    await queryRunner.createTable(table);
-  
-    
   }
-
-  async createTableWithRelations(data: Record<string, any>): Promise<void> {
-    const template = await this.templateService.findTemplateByName(data.templateName);
-    const tableName = data.tableName;
-    const queryRunner = this.entityRepository.manager.connection.createQueryRunner();
-  
-    const tableColumns = template.columns.map((column) => ({
-      name: column.name,
-      type: column.type,
-      isNullable: column.nullable,
-      isUnique: column.unique
-    }));
-
-    const tableRelations = template.relations.map((relation) => {
-      const foreignKey = new TableForeignKey({
-        name: relation.name,
-        columnNames: [relation.options.actualColumn],
-        referencedColumnNames: [relation.options.referencedColumn],
-        referencedTableName: relation.options.referencedTable,
-        onDelete: 'CASCADE',
-      });
-  
-      return foreignKey;
-    });
-  
-    const table = new Table({
-      name: tableName,
-      columns: tableColumns,
-      foreignKeys: tableRelations,
-    });
-  
-    await queryRunner.createTable(table);
-  }
-
 
   async findTableByName(tableName: string): Promise<any | undefined> {
     const tableData = await this.entityRepository.query(`SELECT * FROM "${tableName}"`);
@@ -84,20 +55,16 @@ export class TableService {
   }
 
 
-  
-
-  async insertDataIntoTable(tableName: string, data: Record<string, any>[]): Promise<void> {
-    // Validar la existencia de la tabla
+  async insertDataIntoTable( data: InsertionDto): Promise<void> {
+    const {insertions,tableName} = data
     const tableExists = await this.checkTableExists(tableName);
     if (!tableExists) {
       throw new NotFoundException(`La tabla "${tableName}" no existe.`);
     }
-
+  
     try {
-      // Insertar los datos en la tabla
-      await this.entityRepository.createQueryBuilder().insert().into(tableName).values(data).execute();
+      await this.entityRepository.createQueryBuilder().insert().into(tableName).values(insertions).execute();
     } catch (error) {
-      // Manejar errores de inserción
       throw new InternalServerErrorException('Error al insertar los datos en la tabla.', error);
     }
   }
@@ -109,27 +76,67 @@ export class TableService {
     return result[0].exists;
   }
 
+}
+
+/* 
 
 
 
+private async  createTable(data: Record<string, any>, tableRelations?){
+
+    const template = await this.templateService.findTemplateByName(data.templateName);
+    const tableName = data.tableName;
+    const queryRunner = this.entityRepository.manager.connection.createQueryRunner();
+
+    const tableColumns = template.columns.map((column) => ({
+      name: column.name,
+      type: column.type,
+      isNullable: column.nullable,
+      isUnique: column.unique
+    }));
+
+    const table = new Table({
+      name: tableName,
+      columns: tableColumns,
+      foreignKeys: tableRelations ? tableRelations : null,
+    });
+  
+    await queryRunner.createTable(table);
+  }
 
 
 
+async createTableWithRelations(data: Record<string, any>): Promise<void> {
+  const template = await this.templateService.findTemplateByName(data.templateName);
+  const tableName = data.tableName;
+  const queryRunner = this.entityRepository.manager.connection.createQueryRunner();
 
+  const tableColumns = template.columns.map((column) => ({
+    name: column.name,
+    type: column.type,
+    isNullable: column.nullable,
+    isUnique: column.unique
+  }));
 
+  const tableRelations = template.relations.map((relation) => {
+    const foreignKey = new TableForeignKey({
+      name: relation.name,
+      columnNames: [relation.options.actualColumn],
+      referencedColumnNames: [relation.options.referencedColumn],
+      referencedTableName: relation.options.referencedTable,
+      onDelete: 'CASCADE',
+    });
 
+    return foreignKey;
+  });
 
+  const table = new Table({
+    name: tableName,
+    columns: tableColumns,
+    foreignKeys: tableRelations,
+  });
 
-
-
-
-
-
-
-
-
-
-
+  await queryRunner.createTable(table);
 }
 
 
@@ -325,4 +332,4 @@ export class TableService {
 //  await queryRunner.release();
 //
 //
-//
+**/
