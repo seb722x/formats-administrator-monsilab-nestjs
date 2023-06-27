@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
-import { TemplateService } from './template.service';
+import { TemplateService } from './templates.service';
 import { TemplateDto } from './dto/create-temp.dto';
 import { UpdateTemplateDto } from './dto/update-temp.dto';
 

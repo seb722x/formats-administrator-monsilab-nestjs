@@ -1,51 +1,39 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { TableService } from './entities.service';
-import { getConnection } from 'typeorm';
-import { TemplateService } from '../table-templates/template.service';
-import { InsertionDto } from './dtos/insertions.dto';
+import { InsertionDto } from './dtos/create-insertions.dto';
 
 
 @Controller('tables')
 export class EntitiesController {
   constructor(
-    private readonly templatesServices: TemplateService,
     private readonly tableServices:TableService,
   ) {}
 
 
-  @Post('create-table')
+  @Post('create')
     async createEntityFromTemplate( @Body() data: Record<string, any>) {
         console.log('Datos recibidos:', data);
         return await this.tableServices.createTableFromTemplate( data);
   }
 
-  @Get(':name')
+  @Get('find/:name')
   async getEntityByName(@Param('name') name: string) {
     return await this.tableServices.findTableByName(name);
   }
 
-  @Delete(':tableName')
+  @Delete('delete/:tableName')
   async deleteTable(@Param('tableName') tableName: string): Promise<void> {
      this.tableServices.deleteTable(tableName);
   }
 
 
-  @Get('entity/:tableName')
-    async getOrmEntity(@Param('tableName') tableName:string){
-      this.tableServices.createEntityORM(tableName);
-    }
+  //@Get('entity/:tableName')
+  //  async getOrmEntity(@Param('tableName') tableName:string){
+  //    this.tableServices.createEntityORM(tableName);
+  //  }
 
-  @Post('/insert-data')
-    async insertDataIntoTable( @Body() data: any): Promise<void> {
-      await this.tableServices.insertDataIntoTable( data);
-    }
+  
     
-
-
-
-
-
-
 }
 
 

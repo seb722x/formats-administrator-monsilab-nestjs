@@ -5,10 +5,10 @@ import {  Connection, Repository,  Table,  TableColumn, TableForeignKey, TableUn
 
 import { CustomTable } from './entities/custom-table.entity';
 import { TableEntity } from './entities/table.entity';
-import { TemplateService } from '../table-templates/template.service';
+import { TemplateService } from '../table-templates/templates.service';
 import { table } from './providers/table.provider';
 import { createCustomTableEntity } from './entities/table.test.entity';
-import { InsertionDto } from './dtos/insertions.dto';
+import { InsertionDto } from './dtos/create-insertions.dto';
 
 
 @Injectable()
@@ -23,16 +23,7 @@ export class TableService {
     
   ) {}
 
-  async createEntityORM(name:string){
-    const template = this.templateService.findTemplateByName(name);
-    this.CustomTableEntity = createCustomTableEntity(template);
-
-    //const entityMetadata = this.connection.getMetadata(this.CustomTableEntity);
-    const entityRepository = this.connection.getRepository(this.CustomTableEntity);
-
-    //console.log(entityMetadata);
-    console.log(entityRepository);
-  }
+  
   
   async createTableFromTemplate(data: Record<string, any>): Promise<void> {
     const template = await this.templateService.findTemplateByName(data.templateName);
@@ -54,27 +45,14 @@ export class TableService {
     await this.entityRepository.query(`DROP TABLE IF EXISTS "${tableName}"`);
   }
 
-
-  async insertDataIntoTable( data: InsertionDto): Promise<void> {
-    const {insertions,tableName} = data
-    const tableExists = await this.checkTableExists(tableName);
-    if (!tableExists) {
-      throw new NotFoundException(`La tabla "${tableName}" no existe.`);
-    }
-  
-    try {
-      await this.entityRepository.createQueryBuilder().insert().into(tableName).values(insertions).execute();
-    } catch (error) {
-      throw new InternalServerErrorException('Error al insertar los datos en la tabla.', error);
-    }
-  }
-
-  // Verificar si una tabla existe en la base de datos
-  private async checkTableExists(tableName: string): Promise<boolean> {
-    const tableExistsQuery = `SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = '${tableName}')`;
-    const result = await this.entityRepository.query(tableExistsQuery);
-    return result[0].exists;
-  }
+  //async createEntityORM(name:string){
+  //  const template = this.templateService.findTemplateByName(name);
+  //  this.CustomTableEntity = createCustomTableEntity(template);
+  //  //const entityMetadata = this.connection.getMetadata(this.CustomTableEntity);
+  //  const entityRepository = this.connection.getRepository(this.CustomTableEntity);
+  //  //console.log(entityMetadata);
+  //  console.log(entityRepository);
+  //}
 
 }
 

@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {  DataSource, FindOneOptions, Repository,  } from 'typeorm';
+import {   FindOneOptions, Repository,  } from 'typeorm';
 
 
 import { Template } from './entities/templates.entity';
@@ -17,12 +17,9 @@ export class TemplateService {
     private readonly templateRepository: Repository<Template>,
 
     private readonly errorhandle:ErrorService,
-    private readonly dataSource: DataSource
 
   ) {}
 
-
- 
   async createTemplate(templateDto: TemplateDto): Promise<Template> {
     try{
       const template = this.templateRepository.create(templateDto);
@@ -39,11 +36,9 @@ export class TemplateService {
       console.log(error.code)
       this.errorhandle.handleDBExceptions(error);
     }
-    
-    }
+  }
 
   async findTemplateByName(name: string): Promise<Template> {
-    
     try {
       const options: FindOneOptions<Template> = {
         where: { name },
@@ -66,21 +61,17 @@ export class TemplateService {
     }catch(error){
       return this.errorhandle.notFoundError(error);
     }
-
-    
   }
 
 
   async removeTemplate(name: string) {
     try{
       const product = await this.findTemplateByName( name );
-    await this.templateRepository.remove( product );
+      await this.templateRepository.remove( product );
     }catch(error){
       console.log(error.code)
       return this.errorhandle.notFoundError(error)
     }
-    
   }
-
 }
 

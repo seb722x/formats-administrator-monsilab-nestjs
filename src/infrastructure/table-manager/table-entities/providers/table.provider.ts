@@ -32,8 +32,6 @@ const tableRelations = (template: Template): TableForeignKey[] =>  {
 
 
 export const table = (tableName:string,template:Template) => {
-    
-
     return new Table({
         name: tableName,
         columns: tableColumns(template),
