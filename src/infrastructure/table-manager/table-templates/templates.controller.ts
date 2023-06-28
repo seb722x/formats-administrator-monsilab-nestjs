@@ -14,12 +14,16 @@ export class TemplatesController {
       return this.templateService.createTemplate(templateDto);
   }
   
+  @Get('/findAll')
+    async getAllTemplates() {
+      console.log("hola")
+      return await this.templateService.findAllTemplates();
+  } 
 
-  @Get(':name')
+  @Get('/:name')
     getTemplateByName(@Param('name') name: string) {
       return this.templateService.findTemplateByName(name);
   }
-
   
   @Patch(':name')
   update(

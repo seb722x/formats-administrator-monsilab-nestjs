@@ -50,6 +50,16 @@ export class TemplateService {
     }
   }
 
+  async findAllTemplates( ) {
+    console.log("hola")
+    const templates = await this.templateRepository.find()
+    return  templates.map( ( template ) => ({
+      ...template,
+    }))
+    
+  }
+
+
 
 
   async updateTemplate( name: string, updateTemplateDto: UpdateTemplateDto ) {
