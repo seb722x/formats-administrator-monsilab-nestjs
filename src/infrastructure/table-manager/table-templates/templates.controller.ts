@@ -9,23 +9,22 @@ export class TemplatesController {
   constructor(private readonly templateService: TemplateService) {}
 
 
-  @Post('createtemplate')   //crear el template
+  @Post('create')   //crear el template
     createTemplate(@Body() templateDto: TemplateDto) {
       return this.templateService.createTemplate(templateDto);
   }
   
-  @Get('/findAll')
-    async getAllTemplates() {
-      console.log("hola")
-      return await this.templateService.findAllTemplates();
+  @Get('find-all')
+     getAllTemplates() {
+      return  this.templateService.findAllTemplates();
   } 
 
-  @Get('/:name')
+  @Get('find-name/:name')
     getTemplateByName(@Param('name') name: string) {
       return this.templateService.findTemplateByName(name);
   }
   
-  @Patch(':name')
+  @Patch('update/:name')
   update(
     @Param('name' ) name: string, 
     @Body() updateTemplateDto: UpdateTemplateDto
@@ -34,7 +33,7 @@ export class TemplatesController {
   }
 
 
-  @Delete(':name')
+  @Delete('delete/:name')
   remove(@Param('name',  ) name: string) {
     return this.templateService.removeTemplate( name );
   }

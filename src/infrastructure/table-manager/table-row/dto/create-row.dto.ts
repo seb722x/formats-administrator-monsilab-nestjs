@@ -1,8 +1,10 @@
-import { IsArray, IsObject, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsNumber, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 
-export class InsertionDto {
+export class RowDto {
+
   @IsString()
   tableName: string;
+
 
   @IsArray()
   @ValidateNested()

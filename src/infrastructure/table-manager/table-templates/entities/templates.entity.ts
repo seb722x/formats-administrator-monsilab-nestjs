@@ -12,7 +12,7 @@ export class Template {
   name: string;
 
   @Column('json')
-  columns: Record<string, any>;
+  columns: Record<string, any>; // keys string. values any.
   
   @Column('json', { nullable: true })
   relations: Record<string, any>[];

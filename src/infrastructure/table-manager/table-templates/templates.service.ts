@@ -15,7 +15,6 @@ export class TemplateService {
     
     @InjectRepository(Template)
     private readonly templateRepository: Repository<Template>,
-
     private readonly errorhandle:ErrorService,
 
   ) {}
@@ -51,16 +50,12 @@ export class TemplateService {
   }
 
   async findAllTemplates( ) {
-    console.log("hola")
     const templates = await this.templateRepository.find()
     return  templates.map( ( template ) => ({
       ...template,
     }))
     
   }
-
-
-
 
   async updateTemplate( name: string, updateTemplateDto: UpdateTemplateDto ) {
     try{
@@ -74,10 +69,11 @@ export class TemplateService {
   }
 
 
-  async removeTemplate(name: string) {
+  async removeTemplate(name: string):Promise<any> {
     try{
-      const product = await this.findTemplateByName( name );
-      await this.templateRepository.remove( product );
+      const template = await this.findTemplateByName( name );
+      await this.templateRepository.remove( template );
+      return `Template "${template.name}" eliminada con exito `
     }catch(error){
       console.log(error.code)
       return this.errorhandle.notFoundError(error)

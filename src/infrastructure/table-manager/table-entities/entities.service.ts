@@ -1,14 +1,12 @@
-import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import {  Injectable,  } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {  Connection, Repository,  Table,  TableColumn, TableForeignKey, TableUnique, getConnection, getRepository  } from 'typeorm';
+import {  Connection, Repository,  } from 'typeorm';
 
 
 import { CustomTable } from './entities/custom-table.entity';
-import { TableEntity } from './entities/table.entity';
 import { TemplateService } from '../table-templates/templates.service';
 import { table } from './providers/table.provider';
-import { createCustomTableEntity } from './entities/table.test.entity';
-import { InsertionDto } from './dtos/create-insertions.dto';
+import { tableDto } from './dtos/create-table.dto';
 
 
 @Injectable()
@@ -25,7 +23,7 @@ export class TableService {
 
   
   
-  async createTableFromTemplate(data: Record<string, any>): Promise<void> {
+  async createTableFromTemplate(data: tableDto): Promise<void> {
     const template = await this.templateService.findTemplateByName(data.templateName);
     const tableName = data.tableName;
     const queryRunner = this.entityRepository.manager.connection.createQueryRunner();
@@ -45,7 +43,121 @@ export class TableService {
     await this.entityRepository.query(`DROP TABLE IF EXISTS "${tableName}"`);
   }
 
-  //async createEntityORM(name:string){
+  async modifyColumn(tableName: string, column: string, newName: string, newType: string): Promise<void> {
+    const queryRunner = this.connection.createQueryRunner();
+
+    try {
+      await queryRunner.startTransaction();
+
+      const tableExists = await queryRunner.hasTable(tableName);
+      if (!tableExists) {
+        throw new Error(`Table '${tableName}' does not exist.`);
+      }
+
+      const columnExists = await queryRunner.hasColumn(tableName, column);
+      if (!columnExists) {
+        throw new Error(`Column '${column}' does not exist in table '${tableName}'.`);
+      }
+
+      const query = `ALTER TABLE ${tableName} ALTER COLUMN ${column} RENAME TO ${newName};`;
+      await queryRunner.query(query);
+
+      const alterTypeQuery = `ALTER TABLE ${tableName} ALTER COLUMN ${newName} TYPE ${newType};`;
+      await queryRunner.query(alterTypeQuery);
+
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+
+  private async processRelation(relation: any): Promise<void> {
+    const { type, options } = relation;
+
+    switch (type) {
+      
+      case 'OneToMany':
+        await this.establishOneToManyRelation(
+          options.referencedTable,
+          options.referencedColumn,
+          options.actualTable,
+          options.actualColumn,
+        );
+        break;
+      // Agrega casos adicionales para otros tipos de relaciones según sea necesario
+      default:
+        throw new Error(`Invalid relationship type: ${type}`);
+    }
+  }
+  async establishRelationship(relations: any): Promise<void> {
+    const queryRunner = this.connection.createQueryRunner();
+
+    try {
+      await queryRunner.startTransaction();
+
+      await this.processRelations(relations);
+
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+  private async processRelations(relations: any): Promise<void> {
+    if (!Array.isArray(relations)) {
+      throw new Error('Relations must be an array.');
+    }
+
+    for (const relation of relations) {
+      await this.processRelation(relation);
+    }
+  }
+
+   private async establishOneToManyRelation(
+    referencedTable: string,
+    referencedColumn: string,
+    actualTable: string,
+    actualColumn: string,
+  ): Promise<void> {
+    // Implementa la lógica para establecer una relación One-to-Many
+    const sql = `
+      ALTER TABLE ${actualTable}
+      ADD CONSTRAINT fk_${actualTable}_${referencedTable}
+      FOREIGN KEY (${actualColumn})
+      REFERENCES ${referencedTable} (${referencedColumn})
+      ON DELETE CASCADE;
+    `;
+    await this.connection.query(sql);
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+}
+
+/* 
+
+//async createEntityORM(name:string){
   //  const template = this.templateService.findTemplateByName(name);
   //  this.CustomTableEntity = createCustomTableEntity(template);
   //  //const entityMetadata = this.connection.getMetadata(this.CustomTableEntity);
@@ -53,12 +165,6 @@ export class TableService {
   //  //console.log(entityMetadata);
   //  console.log(entityRepository);
   //}
-
-}
-
-/* 
-
-
 
 private async  createTable(data: Record<string, any>, tableRelations?){
 

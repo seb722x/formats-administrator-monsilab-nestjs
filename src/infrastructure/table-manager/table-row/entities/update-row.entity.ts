@@ -1,5 +1,5 @@
 import {   Entity,    } from 'typeorm';
-import { GenericTable } from './generic.entity';
+import { GenericTable } from './generic-row.entity';
 
 
 @Entity()

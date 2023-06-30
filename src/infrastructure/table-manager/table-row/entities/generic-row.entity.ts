@@ -6,9 +6,4 @@ export class GenericTable {
     @PrimaryColumn()
     id: string;
 
-    @Column('text', {
-        unique: true,
-    })
-    name: string;
-
 }

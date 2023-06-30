@@ -17,15 +17,14 @@ export class ErrorService {
         if ( error.code === '23505' )
           throw new BadRequestException(error.detail);
         
-        this.logger.error(error)
-        // console.log(error)
+        this.logger.error(error);
         throw new InternalServerErrorException('Unexpected error, check server logs');
     
       }
 
     notFoundError(error:any){
 
-        this.logger.error(error)
+        this.logger.error(error);
         throw new NotFoundException(`not found `);
         
     }

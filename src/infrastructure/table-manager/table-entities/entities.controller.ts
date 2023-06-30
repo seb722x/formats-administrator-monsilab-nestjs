@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { TableService } from './entities.service';
-import { InsertionDto } from './dtos/create-insertions.dto';
+import { tableDto } from './dtos/create-table.dto';
 
 
 @Controller('tables')
@@ -11,7 +11,7 @@ export class EntitiesController {
 
 
   @Post('create')
-    async createEntityFromTemplate( @Body() data: Record<string, any>) {
+    async createEntityFromTemplate( @Body() data: tableDto) {
         console.log('Datos recibidos:', data);
         return await this.tableServices.createTableFromTemplate( data);
   }
@@ -24,6 +24,11 @@ export class EntitiesController {
   @Delete('delete/:tableName')
   async deleteTable(@Param('tableName') tableName: string): Promise<void> {
      this.tableServices.deleteTable(tableName);
+  }
+
+  @Post('relations')
+  async stablishRelations(@Body() data:any){
+    this.tableServices.establishRelationship(data.relations)
   }
 
 
